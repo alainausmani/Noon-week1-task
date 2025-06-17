@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Forgot / Reset Password</title>
+</head>
+<body>
+
+  <h1>Forgot Password</h1>
+  <section>
+    <input id="forgotEmail" type="email" placeholder="Enter your email" required />
+    <br>
+    <button onclick="sendResetLink()">Send Reset Link</button>
+    <div id="forgotResponse" class="response"></div>
+  </section>
+
+  <h1>Reset Password</h1>
+  <section>
+    <input id="resetToken" type="text" placeholder="Paste your reset token" required />
+    <br>
+    <input id="newPassword" type="password" placeholder="New password" required />
+    <br>
+    <button onclick="resetPassword()">Reset Password</button>
+    <div id="resetResponse" class="response"></div>
+  </section>
+
+  <script>
+    const BASE_URL = "http://127.0.0.1:8000";
+
+    async function sendResetLink() {
+      const email = document.getElementById("forgotEmail").value;
+      const resDiv = document.getElementById("forgotResponse");
+      resDiv.textContent = "";
+
+      try {
+        const res = await fetch(`${BASE_URL}/auth/forgot-password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          resDiv.textContent = "Reset token generated. Copy and use it below:";
+          const code = document.createElement("code");
+          code.textContent = data.reset_token;
+          resDiv.appendChild(document.createElement("br"));
+          resDiv.appendChild(code);
+        } else {
+          resDiv.textContent = "❌ " + (data.detail || "Error");
+          resDiv.classList.add("error");
+        }
+      } catch (err) {
+        resDiv.textContent = "❌ Network error";
+        resDiv.classList.add("error");
+      }
+    }
+
+    async function resetPassword() {
+      const token = document.getElementById("resetToken").value;
+      const newPassword = document.getElementById("newPassword").value;
+      const resDiv = document.getElementById("resetResponse");
+      resDiv.textContent = "";
+
+      try {
+        const res = await fetch(`${BASE_URL}/auth/reset-password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token, new_password: newPassword })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          resDiv.textContent = "✅ Password reset successful!";
+        } else {
+          resDiv.textContent = "❌ " + (data.detail || "Error");
+          resDiv.classList.add("error");
+        }
+      } catch (err) {
+        resDiv.textContent = "❌ Network error";
+        resDiv.classList.add("error");
+      }
+    }
+  </script>
+
+</body>
+</html>
