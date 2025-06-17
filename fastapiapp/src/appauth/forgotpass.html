@@ -46,11 +46,11 @@
           resDiv.appendChild(document.createElement("br"));
           resDiv.appendChild(code);
         } else {
-          resDiv.textContent = "❌ " + (data.detail || "Error");
+          resDiv.textContent =  (data.detail || "Error");
           resDiv.classList.add("error");
         }
       } catch (err) {
-        resDiv.textContent = "❌ Network error";
+        resDiv.textContent = " Network error";
         resDiv.classList.add("error");
       }
     }
@@ -69,13 +69,13 @@
         });
         const data = await res.json();
         if (res.ok) {
-          resDiv.textContent = "✅ Password reset successful!";
+          resDiv.textContent = "Password reset successful!";
         } else {
-          resDiv.textContent = "❌ " + (data.detail || "Error");
+          resDiv.textContent =  (data.detail || "Error");
           resDiv.classList.add("error");
         }
       } catch (err) {
-        resDiv.textContent = "❌ Network error";
+        resDiv.textContent = "Network error";
         resDiv.classList.add("error");
       }
     }

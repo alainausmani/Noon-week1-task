@@ -1,5 +1,5 @@
 from test.context import Base, engine
-from test.auth.models.tables import User  # ✅ ensures model is registered
+from test.auth.models.tables import User 
 
 def create_all_tables():
     Base.metadata.create_all(bind=engine)

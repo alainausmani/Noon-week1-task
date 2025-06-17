@@ -10,10 +10,9 @@ def create_user(db: Session, user_data: UserRegistrationRequest) -> UserResponse
     if existing_user:
         raise ValueError("Email is already registered")
 
-    # Hash the password
     hashed_password = bcrypt.hash(user_data.password)
 
-    # Create new user
+    
     new_user = User(
         email=user_data.email,
         password=hashed_password,

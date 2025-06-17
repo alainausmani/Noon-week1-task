@@ -46,7 +46,6 @@ def test_user_registration_duplicate_email(db):
     assert "Email is already registered" in str(exc_info.value)
 
 
-# ✅ Test successful login
 def test_user_login_success(db):
     reg = UserRegistrationRequest(
         email="loginuser@example.com",
@@ -66,7 +65,6 @@ def test_user_login_success(db):
     assert response.access_token is not None
     assert response.expires_in == 60
 
-# ❌ Test login with invalid password
 def test_user_login_invalid_password(db):
     reg = UserRegistrationRequest(
         email="failuser@example.com",
@@ -78,7 +76,7 @@ def test_user_login_invalid_password(db):
 
     login = UserLoginRequest(
         email="failuser@example.com",
-        password="WrongPass"  # incorrect password
+        password="WrongPass"
     )
 
     with pytest.raises(Exception) as exc_info:
@@ -86,11 +84,9 @@ def test_user_login_invalid_password(db):
     assert "Invalid email or password" in str(exc_info.value)
 
 def test_reset_password_success(db):
-    # Clean up user if already exists
     db.query(User).filter(User.email == "reset1@example.com").delete()
     db.commit()
 
-    # Create user
     user = User(
         email="reset1@example.com",
         password=bcrypt.hash("OldPassword123"),

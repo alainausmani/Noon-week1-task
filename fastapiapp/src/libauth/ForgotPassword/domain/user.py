@@ -6,7 +6,7 @@ from jose import jwt, JWTError
 from src.libauth.models.tables import User
 from src.libauth.messages import ForgotPasswordRequest, ResetPasswordRequest, ResetTokenResponse
 
-SECRET_KEY = "myverysecurekey123"  # ideally from env
+SECRET_KEY = "myverysecurekey123"  
 ALGORITHM = "HS256"
 RESET_TOKEN_EXPIRE_MINUTES = 30
 

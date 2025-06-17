@@ -3,24 +3,21 @@ from sqlalchemy.orm import sessionmaker
 from test.context import engine, Base
 from test.auth.models.tables import User
 from passlib.hash import bcrypt
-# Create a session factory
 TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# ✅ Create tables once before tests run
 @pytest.fixture(scope="session", autouse=True)
 def setup_database():
     Base.metadata.create_all(bind=engine)
-    # ✅ Do NOT drop tables after
+
     yield
 
-# ✅ Provide a database session for each test
 @pytest.fixture(scope="function")
 def db():
     session = TestSessionLocal()
     try:
         yield session
     finally:
-        session.close()  # only closes session, doesn't drop tables
+        session.close()  
 @pytest.fixture
 def create_test_user(db):
     user = User(
