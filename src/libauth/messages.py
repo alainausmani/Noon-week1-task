@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
+from typing import Optional
 
 class UserRegistrationRequest(BaseModel):
     email: EmailStr
@@ -16,6 +17,7 @@ class UserResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+    
 class UserLoginRequest(BaseModel):
     email: EmailStr
     password: str
@@ -34,3 +36,15 @@ class ResetPasswordRequest(BaseModel):
 
 class ResetTokenResponse(BaseModel):
     reset_token: str
+
+class UserProfileResponse(BaseModel):
+    email:EmailStr
+    first_name:str
+    last_name:str
+    model_config={
+        "from_attributes":True
+    }
+
+class UserUpdateRequest(BaseModel):
+    first_name:Optional[str]=None
+    last_name:Optional[str]=None

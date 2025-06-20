@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Profile</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background-color: #eef; }
+    .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px #aaa; }
+    input, button { display: block; width: 100%; margin-bottom: 10px; padding: 10px; }
+    h2, p { text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Welcome</h2>
+    <p id="email"></p>
+    <form id="updateForm">
+      <input type="text" id="first_name" placeholder="First Name" required />
+      <input type="text" id="last_name" placeholder="Last Name" required />
+      <button type="submit">Update Profile</button>
+    </form>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You are not logged in!");
+      window.location.href = "login.html";
+    }
+
+    async function loadProfile() {
+      const res = await fetch("http://127.0.0.1:8000/auth/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        document.getElementById("email").innerText = data.email;
+        document.getElementById("first_name").value = data.first_name;
+        document.getElementById("last_name").value = data.last_name;
+      } else {
+        alert("Failed to load profile: " + data.detail);
+      }
+    }
+
+    document.getElementById("updateForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const updated = {
+        first_name: document.getElementById("first_name").value,
+        last_name: document.getElementById("last_name").value,
+      };
+
+      const res = await fetch("http://127.0.0.1:8000/auth/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updated),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert("Profile updated successfully!");
+        loadProfile();
+      } else {
+        alert("Update failed: " + data.detail);
+      }
+    });
+
+    // Load profile on page load
+    loadProfile();
+  </script>
+</body>
+</html>

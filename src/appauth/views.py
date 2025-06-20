@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from src.libauth.context import SessionLocal
-from src.libauth.messages import UserRegistrationRequest, UserResponse, UserLoginRequest, LoginResponse
+from src.libauth.messages import UserRegistrationRequest, UserResponse, UserLoginRequest, LoginResponse ,UserProfileResponse, UserUpdateRequest
 from src.libauth.RegisterUser.domain import user as user_service
 from ..libauth.messages import UserLoginRequest, LoginResponse
 from src.libauth.Loginuser.domain.user import login_user
@@ -10,6 +10,10 @@ from src.libauth.ForgotPassword.domain.user import forgot_password
 from src.libauth.messages import ResetPasswordRequest
 from src.libauth.ForgotPassword.domain.user import reset_password
 import traceback
+from src.libauth.Profile.domain.user import get_profile, update_profile
+from src.libauth.messages import UserUpdateRequest, UserProfileResponse
+from src.libauth.Profile.domain.auth import get_current_user
+
 
 router = APIRouter()
 
@@ -17,9 +21,9 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
-    finally:
+    finally:  
         db.close()
-
+        
 @router.post("/register", response_model=UserResponse)
 def register_user(request: UserRegistrationRequest, db: Session = Depends(get_db)):
     try:
@@ -41,3 +45,11 @@ def forgot_password_endpoint(request: ForgotPasswordRequest, db: Session = Depen
 @router.post("/reset-password")
 def reset_password_endpoint(request: ResetPasswordRequest, db: Session = Depends(get_db)):
     return reset_password(db, request)
+
+@router.get("/profile", response_model=UserProfileResponse)
+def read_profile(profile=Depends(get_profile)):
+    return profile
+
+@router.put("/profile", response_model=UserProfileResponse)
+def modify_profile(update_data: UserUpdateRequest, updated=Depends(update_profile)):
+    return updated
