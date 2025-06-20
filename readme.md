@@ -1,50 +1,64 @@
-This is a simple user authentication system built with FastAPI, SQLAlchemy, Python and JWT.  
-It allows users to register, log in, Set up new password incase of forget password , edit personal information , view personal information and receive a JWT token for secure access to protected routes.
+FastAPI User Authentication System
 
-Step-by-Step: Run the FastAPI Authentication Project
+This is a basic yet complete user authentication system built using FastAPI, SQLAlchemy, Python, and JWT.
+It provides functionality for:
 
-STEP 1: Set Up MySQL (Workbench + XAMPP)
+* User registration
+* User login with JWT-based authentication
+* Password reset (forgot password)
+* Viewing personal profile
+* Editing user information
+* Secure access to protected routes using JWT tokens
 
-1.Open XAMPP and start MySQL.
-2.Open MySQL Workbench.
-3.Create a new database 
+Step-by-Step Guide: Run the FastAPI Authentication Project
 
-STEP 2: Set Up Python Virtual Environment
+Step 1: Set Up MySQL (Workbench and XAMPP)
 
-1.Open your project folder in VS Code or terminal.
-2.Create a virtual environment: "python -m venv venv"
-3.Activate the virtual environment:
-Windows:
+1. Open XAMPP and start the MySQL service.
+2. Launch MySQL Workbench.
+3. Create a new database for the project.
+
+Step 2: Set Up a Python Virtual Environment
+
+1. Open your project folder in VS Code or a terminal.
+2. Create a virtual environment:
+python -m venv venv
+3. Activate the virtual environment:
+On Windows:
 venv\Scripts\activate
-Mac/Linux:
+On macOS/Linux:
 source venv/bin/activate
 
-STEP 3: Install All Required Packages
+Step 3: Install Required Python Packages
 
-1.Run this in your activated virtual environment:"pip install fastapi uvicorn sqlalchemy pymysql python-jose[cryptography] passlib[bcrypt] pydantic python-dotenv pytest"
+Run the following command in the activated virtual environment:
+pip install fastapi uvicorn sqlalchemy pymysql python-jose[cryptography] passlib[bcrypt] pydantic python-dotenv pytest
 
-STEP 4: Create .env File
+Step 4: Create a `.env` File
 
-1.In your project root, create a .env file:
+In the root of your project, create a `.env` file with the following contents:
 JWT_SECRET_KEY=myverysecurekey
 JWT_ALGORITHM=HS256
 JWT_EXPIRE_MINUTES=60
 
-STEP 5: Create Database Tables
+Step 5: Create Database Tables
 
-1.Run this command to create the tables in MySQL from your model: "python create_tables.py"
-2.Run this command again to create tables of testing Database by changing the routes to test->auth->models->tables.py
+1. Run the following command to create tables in your main database:
+python create_tables.py
+2. To create tables in the test database, adjust the path to use `test/auth/models/tables.py` and run the same command.
 
-STEP 6: Start the FastAPI App
+Step 6: Start the FastAPI Application
 
-1.Inside the root directory, run the app with Uvicorn: "uvicorn src.appauth.web:app --reload"
+From the root directory, run the following command to launch the app:
+uvicorn src.appauth.web:app --reload
 
-STEP 7: Use the API or Frontend
+Step 7: Access the API or Frontend
 
-1.On google search Swagger UI:http://127.0.0.1:8000/docs 
+1. Open the Swagger UI in your browser to test the API endpoints:
+   http://127.0.0.1:8000/docs
+2. To use the HTML interface for registration and login, open `mainscreen.html` in a browser (preferably using "Open with Live Server" in VS Code).
 
-Register & Login HTML forms:
-2.Open mainscreen.html through open with live server
+Step 8: Run Tests
 
-STEP 8: Run Tests
-1.run command : "pytest test/auth/test_auth.py -v"
+Run the test suite using pytest:
+pytest test/auth/test_auth.py -v
