@@ -33,7 +33,7 @@
 
       if (response.ok) {
         localStorage.setItem("token", data.access_token);
-        window.location.href = "profile.html";
+        window.location.href = "dashboard.html";
       } else {
         alert("Login failed: " + (data.detail || "Unknown error"));
       }

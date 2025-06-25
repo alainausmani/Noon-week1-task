@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edit Task</title>
+</head>
+<body>
+  <h2>Edit Task</h2>
+  <form id="edit-form">
+    <input type="text" id="title" required><br>
+    <textarea id="description"></textarea><br>
+    <select id="status">
+      <option value="pending">Pending</option>
+      <option value="in_progress">In Progress</option>
+      <option value="done">Done</option>
+    </select><br>
+    <button type="submit">Save</button>
+  </form>
+
+  <script>
+    const token = localStorage.getItem("token");
+    const params = new URLSearchParams(window.location.search);
+    const taskId = params.get("id");
+
+    async function loadTask() {
+      const res = await fetch(`http://127.0.0.1:8000/auth/tasks/${taskId}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const task = await res.json();
+      document.getElementById("title").value = task.title;
+      document.getElementById("description").value = task.description;
+      document.getElementById("status").value = task.status;
+    }
+
+    document.getElementById("edit-form").addEventListener("submit", async e => {
+      e.preventDefault();
+      const data = {
+        title: document.getElementById("title").value,
+        description: document.getElementById("description").value,
+        status: document.getElementById("status").value,
+      };
+      const res = await fetch(`http://127.0.0.1:8000/auth/tasks/${taskId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+      });
+      if (res.ok) {
+        alert("Task updated!");
+        window.location.href = "CustomerDashboard.html";
+      } else {
+        alert("Failed to update task.");
+      }
+    });
+
+    loadTask();
+  </script>
+</body>
+</html>

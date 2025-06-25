@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Create Task</title>
+</head>
+<body>
+  <h2>Create a New Task</h2>
+  <form id="task-form">
+    <input type="text" id="title" placeholder="Task Title" required><br>
+    <textarea id="description" placeholder="Task Description"></textarea><br>
+    <select id="status">
+      <option value="pending">Pending</option>
+      <option value="in_progress">In Progress</option>
+      <option value="done">Done</option>
+    </select><br>
+    <button type="submit">Create Task</button>
+  </form>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please log in first.");
+      window.location.href = "login.html";
+    }
+
+    document.getElementById("task-form").addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      const data = {
+        title: document.getElementById("title").value,
+        description: document.getElementById("description").value,
+        status: document.getElementById("status").value,
+      };
+
+      const response = await fetch("http://127.0.0.1:8000/auth/tasks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Task created successfully!");
+        window.location.reload();
+      } else {
+        alert("Failed: " + (result.detail || "Unknown error"));
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

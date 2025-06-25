@@ -1,12 +1,42 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
+from enum import Enum
+
+class TaskStatusEnum(str, Enum):
+    pending = "pending"
+    in_progress = "in_progress"
+    done = "done"
+
+class CreateTaskRequest(BaseModel):
+    title: str
+    description: str = ""
+    status: TaskStatusEnum = TaskStatusEnum.pending
+class TaskStatus(str, Enum):
+    pending = "pending"
+    in_progress = "in_progress"
+    done = "done"
+
+class UpdateTaskRequest(BaseModel):
+    title: str
+    description: Optional[str]
+    status: TaskStatus
+class TaskResponse(BaseModel):
+    id: int
+    title: str
+    description: str
+    status: TaskStatusEnum
+
+class Config:
+    orm_mode = True
 
 class UserRegistrationRequest(BaseModel):
-    email: EmailStr
-    password: str = Field(min_length=8)
     first_name: str
     last_name: str
+    email: EmailStr
+    password: str
+    role: Literal["user", "admin"] 
+
 
 class UserResponse(BaseModel):
     id: int

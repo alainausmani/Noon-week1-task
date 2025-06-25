@@ -1,5 +1,7 @@
-from test.context import Base, engine
-from test.auth.models.tables import User 
+from src.libauth.context import Base, engine
+from src.libauth.models.tables import User 
+from src.libauth.models.TaskTable import Task
+from src.libauth.models.MediaTable import Media
 
 def create_all_tables():
     Base.metadata.create_all(bind=engine)
