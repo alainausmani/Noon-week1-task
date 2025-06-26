@@ -7,6 +7,15 @@ from fastapi import HTTPException
 def create_task_for_user(db: Session, user: User, request: CreateTaskRequest):
     if user.role != UserRole.user:
         raise HTTPException(status_code=403, detail="Only regular users can create tasks.")
+
+    # Optional: check for duplicate task title
+    existing = db.query(Task).filter(
+        Task.user_id == user.id,
+        Task.title == request.title
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Task with this title already exists")
+
     new_task = Task(
         title=request.title,
         description=request.description,
@@ -26,6 +35,7 @@ def get_task_by_id(db: Session, user: User, task_id: int):
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     return task
+
 
 def update_task_logic(db: Session, user: User, task_id: int, data: UpdateTaskRequest):
     task = get_task_by_id(db, user, task_id)

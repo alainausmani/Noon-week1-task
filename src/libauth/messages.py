@@ -19,8 +19,9 @@ class TaskStatus(str, Enum):
 
 class UpdateTaskRequest(BaseModel):
     title: str
-    description: Optional[str]
+    description: str
     status: TaskStatus
+    
 class TaskResponse(BaseModel):
     id: int
     title: str
@@ -51,6 +52,7 @@ class UserResponse(BaseModel):
 class UserLoginRequest(BaseModel):
     email: EmailStr
     password: str
+    role : str
 
 class LoginResponse(BaseModel):
     access_token: str

@@ -3,19 +3,14 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from src.libauth.models.tables import User
 from src.libauth.context import SessionLocal
-from src.libauth.messages import UserRegistrationRequest, UserResponse, UserLoginRequest, LoginResponse ,UserProfileResponse, UserUpdateRequest
+from src.libauth.messages import UpdateTaskRequest, CreateTaskRequest, TaskResponse, UserUpdateRequest, UserProfileResponse, ResetPasswordRequest, ForgotPasswordRequest, ResetTokenResponse,UserRegistrationRequest, UserResponse, UserLoginRequest, LoginResponse ,UserProfileResponse, UserUpdateRequest
 from src.libauth.RegisterUser.domain import user as user_service
 from ..libauth.messages import UserLoginRequest, LoginResponse
 from src.libauth.Loginuser.domain.user import login_user
-from src.libauth.messages import ForgotPasswordRequest, ResetTokenResponse
 from src.libauth.ForgotPassword.domain.user import forgot_password
-from src.libauth.messages import ResetPasswordRequest
 from src.libauth.ForgotPassword.domain.user import reset_password
 import traceback
 from src.libauth.Profile.domain.user import get_profile, update_profile
-from src.libauth.messages import UserUpdateRequest, UserProfileResponse
-from src.libauth.Profile.domain.auth import get_current_user
-from src.libauth.messages import CreateTaskRequest, TaskResponse
 from src.libauth.Profile.domain.auth import get_current_user
 from src.libauth.context import SessionLocal
 from src.libauth.models.TaskTable import Task, TaskStatus
@@ -25,7 +20,8 @@ from src.libauth.Task.domain.user import (
     get_task_by_id, update_task_logic,
     delete_task_logic
 )
-from src.libauth.messages import UpdateTaskRequest
+from src.libauth.models.tables import User, UserRole
+from src.libauth.Task.domain import admin, user
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -45,6 +41,7 @@ def register_user(request: UserRegistrationRequest, db: Session = Depends(get_db
     except Exception as e:
         traceback.print_exc()  
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
 
 @router.post("/login", response_model=LoginResponse)
 def login(request: UserLoginRequest, db: Session = Depends(get_db)):
@@ -94,3 +91,46 @@ def update_task(task_id: int, request: UpdateTaskRequest, db=Depends(get_db), cu
 def delete_task(task_id: int, db=Depends(get_db), current_user=Depends(get_current_user)):
     delete_task_logic(db, current_user, task_id)
     return {"message": "Task deleted successfully"}
+
+@router.get("/admin/tasks")
+def get_all_tasks_for_admin(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    from src.libauth.models.tables import UserRole  # <- ensure this is imported
+
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    return admin.get_all_tasks(db)
+
+
+@router.get("/admin/tasks/{task_id}", response_model=TaskResponse)
+def admin_get_task_by_id(
+    task_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=403, detail="Admins only")
+    return admin.get_task_by_id_admin(db, task_id)
+
+@router.put("/admin/tasks/{task_id}")
+def admin_update_task(
+    task_id: int,
+    data: UpdateTaskRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return admin.update_task_admin(db, task_id, data)
+
+@router.delete("/admin/tasks/{task_id}")
+def admin_delete_task(
+    task_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=403, detail="Admins only")
+    admin.delete_task_admin(db, task_id)
+    return {"detail": "Task deleted"} 

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Task Dashboard</title>
+  <style>
+    body { font-family: Arial; background: #f4f4f4; padding: 20px; }
+    h2 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+    th { background-color: #eee; }
+    button { margin: 0 5px; }
+  </style>
+</head>
+<body>
+  <h2>Admin Task Dashboard</h2>
+  <table id="admin-task-table">
+    <thead>
+      <tr>
+        <th>Task ID</th>
+        <th>User ID</th>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Status</th>
+        <th>Created At</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please login first");
+      window.location.href = "login.html";
+    }
+
+    // Decode token and check role
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.role !== "admin") {
+        alert("Access denied. Admins only.");
+        window.location.href = "login.html";
+      }
+    } catch (e) {
+      console.error("Failed to decode token:", e);
+      alert("Invalid token. Please login again.");
+      localStorage.removeItem("token");
+      window.location.href = "login.html";
+    }
+
+    async function fetchAllTasks() {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/auth/admin/tasks", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert("Error fetching tasks: " + (data.detail || "Unknown error"));
+          return;
+        }
+
+        const tbody = document.querySelector("#admin-task-table tbody");
+        tbody.innerHTML = "";
+
+        if (!Array.isArray(data)) {
+          console.warn("Unexpected data format:", data);
+          alert("Unexpected data format from server.");
+          return;
+        }
+
+        data.forEach(task => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${task.id}</td>
+            <td>${task.user_id}</td>
+            <td>${task.title}</td>
+            <td>${task.description}</td>
+            <td>${task.status}</td>
+            <td>${new Date(task.created_at).toLocaleString()}</td>
+            <td>
+              <button onclick="editTask(${task.id})">Edit</button>
+              <button onclick="deleteTask(${task.id})">Delete</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (err) {
+        console.error("Fetch failed:", err);
+        alert("Failed to fetch tasks. Try again.");
+      }
+    }
+
+    async function deleteTask(taskId) {
+      if (!confirm("Are you sure you want to delete this task?")) return;
+
+      try {
+        const res = await fetch(`http://127.0.0.1:8000/auth/admin/tasks/${taskId}`, {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+          alert("Task deleted");
+          fetchAllTasks();
+        } else {
+          alert("Delete failed: " + (result.detail || "Unknown error"));
+        }
+      } catch (err) {
+        console.error("Delete failed:", err);
+        alert("Failed to delete task.");
+      }
+    }
+
+    function editTask(taskId) {
+      window.location.href = `AdminEditTask.html?id=${taskId}`;
+    }
+
+    fetchAllTasks();
+  </script>
+</body>
+</html>
