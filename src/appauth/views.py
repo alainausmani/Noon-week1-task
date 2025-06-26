@@ -15,11 +15,7 @@ from src.libauth.Profile.domain.auth import get_current_user
 from src.libauth.context import SessionLocal
 from src.libauth.models.TaskTable import Task, TaskStatus
 from src.libauth.Task.domain.user import create_task_for_user
-from src.libauth.Task.domain.user import (
-    get_user_tasks,
-    get_task_by_id, update_task_logic,
-    delete_task_logic
-)
+from src.libauth.Task.domain.user import (get_user_tasks,get_task_by_id, update_task_logic,delete_task_logic)
 from src.libauth.models.tables import User, UserRole
 from src.libauth.Task.domain import admin, user
 
@@ -73,10 +69,7 @@ def create_task(request: CreateTaskRequest, db=Depends(get_db), current_user=Dep
     return create_task_for_user(db, current_user, request)
 
 @router.get("/tasks")
-def list_tasks(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user) 
-):
+def list_tasks(db: Session = Depends(get_db),current_user: User = Depends(get_current_user)):
     return db.query(Task).filter(Task.user_id == current_user.id).all()
 
 @router.get("/tasks/{task_id}", response_model=TaskResponse)
@@ -93,43 +86,24 @@ def delete_task(task_id: int, db=Depends(get_db), current_user=Depends(get_curre
     return {"message": "Task deleted successfully"}
 
 @router.get("/admin/tasks")
-def get_all_tasks_for_admin(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    from src.libauth.models.tables import UserRole  # <- ensure this is imported
-
+def get_all_tasks_for_admin(db: Session = Depends(get_db),current_user: User = Depends(get_current_user)): 
     if current_user.role != UserRole.admin:
         raise HTTPException(status_code=403, detail="Access denied")
-
     return admin.get_all_tasks(db)
 
 
 @router.get("/admin/tasks/{task_id}", response_model=TaskResponse)
-def admin_get_task_by_id(
-    task_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
+def admin_get_task_by_id(task_id: int,db: Session = Depends(get_db),current_user: User = Depends(get_current_user)):
     if current_user.role != UserRole.admin:
         raise HTTPException(status_code=403, detail="Admins only")
     return admin.get_task_by_id_admin(db, task_id)
 
 @router.put("/admin/tasks/{task_id}")
-def admin_update_task(
-    task_id: int,
-    data: UpdateTaskRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
+def admin_update_task(task_id: int, data: UpdateTaskRequest,db: Session = Depends(get_db),current_user: User = Depends(get_current_user)):
     return admin.update_task_admin(db, task_id, data)
 
 @router.delete("/admin/tasks/{task_id}")
-def admin_delete_task(
-    task_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
+def admin_delete_task(task_id: int,db: Session = Depends(get_db),current_user: User = Depends(get_current_user)):
     if current_user.role != UserRole.admin:
         raise HTTPException(status_code=403, detail="Admins only")
     admin.delete_task_admin(db, task_id)

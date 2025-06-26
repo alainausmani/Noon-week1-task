@@ -7,8 +7,6 @@ from fastapi import HTTPException
 def create_task_for_user(db: Session, user: User, request: CreateTaskRequest):
     if user.role != UserRole.user:
         raise HTTPException(status_code=403, detail="Only regular users can create tasks.")
-
-    # Optional: check for duplicate task title
     existing = db.query(Task).filter(
         Task.user_id == user.id,
         Task.title == request.title
