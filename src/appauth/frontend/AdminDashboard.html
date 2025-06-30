@@ -6,9 +6,9 @@
     body { font-family: Arial; background: #f4f4f4; padding: 20px; }
     h2 { text-align: center; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; vertical-align: top; }
     th { background-color: #eee; }
-    button { margin: 0 5px; }
+    button { margin: 5px 0; }
   </style>
 </head>
 <body>
@@ -36,7 +36,6 @@
       window.location.href = "login.html";
     }
 
-    // Decode token and check role
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       if (payload.role !== "admin") {
@@ -44,7 +43,7 @@
         window.location.href = "login.html";
       }
     } catch (e) {
-      console.error("Failed to decode token:", e);
+      console.error("Invalid token:", e);
       alert("Invalid token. Please login again.");
       localStorage.removeItem("token");
       window.location.href = "login.html";
@@ -65,12 +64,6 @@
 
         const tbody = document.querySelector("#admin-task-table tbody");
         tbody.innerHTML = "";
-
-        if (!Array.isArray(data)) {
-          console.warn("Unexpected data format:", data);
-          alert("Unexpected data format from server.");
-          return;
-        }
 
         data.forEach(task => {
           const row = document.createElement("tr");
@@ -100,9 +93,7 @@
       try {
         const res = await fetch(`http://127.0.0.1:8000/auth/admin/tasks/${taskId}`, {
           method: "DELETE",
-          headers: {
-            "Authorization": `Bearer ${token}`
-          }
+          headers: { "Authorization": `Bearer ${token}` }
         });
 
         const result = await res.json();

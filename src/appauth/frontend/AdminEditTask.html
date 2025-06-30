@@ -40,6 +40,33 @@
     button:hover {
       background-color: #0056b3;
     }
+    .media-item {
+      margin: 10px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      max-width: 80%;
+      max-height: 80%;
+      overflow: auto;
+    }
+    .close {
+      float: right;
+      cursor: pointer;
+      font-size: 20px;
+    }
   </style>
 </head>
 <body>
@@ -53,108 +80,146 @@
     <textarea id="description" name="description" required></textarea>
 
     <label for="status">Status</label>
-<select id="status" name="status" required>
-  <option value="pending">Pending</option>
-  <option value="in_progress">In Progress</option>
-  <option value="done">Done</option>
-</select>
+    <select id="status" name="status" required>
+      <option value="pending">Pending</option>
+      <option value="in_progress">In Progress</option>
+      <option value="done">Done</option>
+    </select>
 
+    <label for="media-upload">Upload Media</label>
+    <input type="file" id="media-upload">
+
+    <div id="media-list"></div>
 
     <button type="submit">Update Task</button>
   </form>
 
+  <div id="media-modal" class="modal" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <iframe id="media-frame" style="width: 100%; height: 400px;"></iframe>
+    </div>
+  </div>
+
   <script>
     const token = localStorage.getItem("token");
+    const taskId = new URLSearchParams(window.location.search).get("id");
 
-    if (!token) {
-      alert("Please login first");
+    if (!token || !taskId) {
+      alert("Unauthorized or no task ID");
       window.location.href = "login.html";
     }
 
-    // Validate token role
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      if (payload.role !== "admin") {
-        alert("Access denied. Admins only.");
-        window.location.href = "login.html";
-      }
-    } catch (e) {
-      alert("Invalid token.");
-      localStorage.removeItem("token");
-      window.location.href = "login.html";
+    const headers = { "Authorization": `Bearer ${token}` };
+
+    function openModal(url) {
+      document.getElementById("media-frame").src = url;
+      document.getElementById("media-modal").style.display = "flex";
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const taskId = urlParams.get("id");
-
-    if (!taskId) {
-      alert("No task ID provided");
-      window.location.href = "adminDashboard.html";
+    function closeModal() {
+      document.getElementById("media-modal").style.display = "none";
+      document.getElementById("media-frame").src = "";
     }
 
-    // Load task data to populate form
     async function loadTask() {
-      try {
-        const res = await fetch(`http://127.0.0.1:8000/auth/admin/tasks/${taskId}`, {
-          headers: {
-            "Authorization": `Bearer ${token}`
-          }
-        });
+      const res = await fetch(`http://127.0.0.1:8000/auth/admin/tasks/${taskId}/media`, { headers });
+      const task = await res.json();
 
-        const task = await res.json();
-
-        if (!res.ok) {
-        alert("Update failed: " + JSON.stringify(result));
-          return;
-        }
-
-        document.getElementById("title").value = task.title;
-        document.getElementById("description").value = task.description;
-        document.getElementById("status").value = task.status;
-
-      } catch (err) {
-        console.error("Error loading task:", err);
+      if (!res.ok) {
         alert("Failed to load task");
+        return;
+      }
+
+      document.getElementById("title").value = task.title;
+      document.getElementById("description").value = task.description;
+      document.getElementById("status").value = task.status;
+    }
+
+    async function loadMedia() {
+      const res = await fetch(`http://127.0.0.1:8000/auth/tasks/${taskId}/media`, { headers });
+      const mediaList = await res.json();
+      const container = document.getElementById("media-list");
+      container.innerHTML = "<h4>Existing Media Files</h4>";
+
+      if (!Array.isArray(mediaList)) return;
+
+      mediaList.forEach(media => {
+        const div = document.createElement("div");
+        div.className = "media-item";
+        div.innerHTML = `
+        <span style="cursor:pointer; color:blue;" onclick="openModal('http://127.0.0.1:8000${media.file_url}')">
+            📎 ${media.filename}
+          </span>
+          <button onclick="deleteMedia(${media.id})">❌ Delete</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function deleteMedia(mediaId) {
+      if (!confirm("Delete this file?")) return;
+      const res = await fetch(`http://127.0.0.1:8000/auth/media/${mediaId}`, {
+        method: "DELETE",
+        headers
+      });
+      if (res.ok) {
+        alert("File deleted");
+        loadMedia();
+      } else {
+        alert("Delete failed");
       }
     }
 
     document.getElementById("edit-task-form").addEventListener("submit", async function (e) {
       e.preventDefault();
 
-      const updatedTask = {
+      const data = {
         title: document.getElementById("title").value,
         description: document.getElementById("description").value,
         status: document.getElementById("status").value,
       };
 
-      try {
-        const res = await fetch(`http://127.0.0.1:8000/auth/admin/tasks/${taskId}`, {
-          method: "PUT",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(updatedTask)
-        });
+      const res = await fetch(`http://127.0.0.1:8000/auth/admin/tasks/${taskId}`, {
+        method: "PUT",
+        headers: {
+          ...headers,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
 
-        const result = await res.json();
-
-        if (res.ok) {
-          alert("Task updated successfully!");
-          window.location.href = "adminDashboard.html";
-        } else {
-          alert("Update failed: " + (result.detail || "Unknown error"));
-        }
-
-      } catch (err) {
-        console.error("Update error:", err);
-        alert("Failed to update task.");
+      if (res.ok) {
+        alert("Task updated!");
+        uploadMedia(); // Upload file if selected
+      } else {
+        alert("Update failed");
       }
     });
 
+    async function uploadMedia() {
+      const fileInput = document.getElementById("media-upload");
+      if (!fileInput.files.length) return;
+
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+
+      const res = await fetch(`http://127.0.0.1:8000/auth/tasks/${taskId}/upload`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` },
+        body: formData
+      });
+
+      if (res.ok) {
+        alert("Media uploaded!");
+        loadMedia();
+      } else {
+        alert("Media upload failed");
+      }
+    }
+
     loadTask();
-    
+    loadMedia();
   </script>
 </body>
 </html>
-
