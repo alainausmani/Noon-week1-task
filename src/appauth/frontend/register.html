@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Registration</title>
+</head>
+<body>
+  <h2>Register</h2>
+  <form id="register-form">
+    <input type="text" id="first_name" placeholder="First Name" required><br>
+    <input type="text" id="last_name" placeholder="Last Name" required><br>
+    <input type="email" id="email" placeholder="Email" required><br>
+    <input type="password" id="password" placeholder="Password" required><br>
+
+    <div id="role-section" style="display:none;">
+      <label for="role">Register As:</label>
+      <select id="role" required></select><br>
+    </div>
+
+    <button type="submit">Register</button>
+  </form>
+
+  <script>
+    const emailField = document.getElementById("email");
+    const roleSection = document.getElementById("role-section");
+    const roleSelect = document.getElementById("role");
+
+    emailField.addEventListener("blur", async () => {
+      const email = emailField.value.trim().toLowerCase();
+      roleSelect.innerHTML = ""; // Clear previous options
+
+      if (email.endsWith("@namshi.com")) {
+        try {
+          const res = await fetch(`http://127.0.0.1:8000/auth/check-role?email=${email}`);
+          const roles = await res.json();
+
+          console.log("Existing roles for", email, "=>", roles);
+
+          const hasUser = roles.includes("user");
+          const hasAdmin = roles.includes("admin");
+
+          if (hasUser && hasAdmin) {
+            roleSection.style.display = "none";
+            alert("Both user and admin accounts already exist for this email.");
+            return;
+          }
+
+          if (!hasUser) {
+            roleSelect.innerHTML += `<option value="user">User</option>`;
+          }
+          if (!hasAdmin) {
+            roleSelect.innerHTML += `<option value="admin">Admin</option>`;
+          }
+
+          roleSection.style.display = "block";
+        } catch (err) {
+          console.error("Error checking roles:", err);
+          roleSection.style.display = "none";
+        }
+      } else {
+        roleSection.style.display = "none"; // Hide role dropdown for non-namshi users
+      }
+    });
+
+    document.getElementById("register-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const role = (email.endsWith("@namshi.com") && roleSection.style.display !== "none")
+        ? roleSelect.value
+        : "user";
+
+      const data = {
+        first_name: document.getElementById("first_name").value,
+        last_name: document.getElementById("last_name").value,
+        email,
+        password: document.getElementById("password").value,
+        role
+      };
+
+      console.log("Submitting:", data);
+
+      const res = await fetch("http://127.0.0.1:8000/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        alert("Registered successfully!");
+        window.location.href = "login.html";
+      } else {
+        alert("Registration failed: " + result.detail);
+      }
+    });
+  </script>
+</body>
+</html>

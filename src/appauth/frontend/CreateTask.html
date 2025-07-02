@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Create Task</title>
+</head>
+<body>
+  <h2>Create a New Task</h2>
+  <form id="task-form" enctype="multipart/form-data">
+    <input type="text" id="title" placeholder="Task Title" required><br>
+    <textarea id="description" placeholder="Task Description"></textarea><br>
+    <select id="status">
+      <option value="pending">Pending</option>
+      <option value="in_progress">In Progress</option>
+      <option value="done">Done</option>
+    </select><br>
+    <input type="file" id="task-file"><br>
+    <button type="submit">Create Task</button>
+  </form>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        alert("Please log in first.");
+        window.location.href = "login.html";
+      }
+
+      document.getElementById("task-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const file = document.getElementById("task-file").files[0];
+
+        const data = {
+          title: document.getElementById("title").value,
+          description: document.getElementById("description").value,
+          status: document.getElementById("status").value,
+        };
+
+        // Step 1: Create Task
+        const res = await fetch("http://127.0.0.1:8000/auth/tasks", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+
+        if (!res.ok) {
+          alert("Failed: " + (result.detail || "Unknown error"));
+          return;
+        }
+
+        // Step 2: Upload file if selected
+        if (file) {
+          const formData = new FormData();
+          formData.append("file", file);
+
+          const uploadRes = await fetch(`http://127.0.0.1:8000/auth/tasks/${result.id}/upload`, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${token}`
+            },
+            body: formData
+          });
+
+          if (!uploadRes.ok) {
+            const error = await uploadRes.json();
+            alert("Task created, but file upload failed: " + (error.detail || "Unknown error"));
+          } else {
+            alert("Task and file uploaded successfully!");
+          }
+        } else {
+          alert("Task created successfully!");
+        }
+
+        window.location.reload();
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background-color: #f0f8ff; text-align: center; }
+    h2 { margin-bottom: 20px; }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+<body>
+  <h2>Welcome to Dashboard</h2>
+  <button onclick="goToTask()">Go to Task Page</button>
+  <button onclick="goToProfile()">Go to Profile Page</button>
+
+  <script>
+    function goToTask() {
+      window.location.href = "CustomerDashboard.html";
+    }
+
+    function goToProfile() {
+      window.location.href = "profile.html";
+    }
+  </script>
+</body>
+</html>

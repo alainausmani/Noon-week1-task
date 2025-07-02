@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 from .views import router
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 app.include_router(router, prefix="/auth") 
-
+app.mount("/media", StaticFiles(directory="media"), name="media")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  

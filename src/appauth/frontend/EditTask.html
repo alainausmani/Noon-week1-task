@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edit Task</title>
+  <style>
+    #media-modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+    }
+
+    #media-modal-content {
+      position: relative;
+      margin: 10% auto;
+      padding: 20px;
+      background: #fff;
+      max-width: 90%;
+      text-align: center;
+    }
+
+    #media-modal-content img,
+    #media-modal-content iframe {
+      max-width: 100%;
+      max-height: 80vh;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 10px; right: 20px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    button { margin: 5px; }
+  </style>
+</head>
+<body>
+  <h2>Edit Task</h2>
+
+  <form id="edit-form">
+    <input type="text" id="title" placeholder="Title" required><br>
+    <textarea id="description" placeholder="Description" required></textarea><br>
+    <select id="status" required>
+      <option value="pending">Pending</option>
+      <option value="in_progress">In Progress</option>
+      <option value="done">Done</option>
+    </select><br>
+    <button type="submit">Save Changes</button>
+  </form>
+
+  <h3>Current Files</h3>
+  <ul id="media-list"><li>Loading...</li></ul>
+
+  <h3>Upload New File</h3>
+  <input type="file" id="file-input" />
+  <button onclick="uploadFile()">Upload</button>
+
+  <div id="media-modal">
+    <div id="media-modal-content">
+      <span class="close-modal" onclick="closeModal()">&times;</span>
+      <div id="media-display"></div>
+    </div>
+  </div>
+
+  <script>
+    function sanitize(value) {
+      return value === undefined || value === null || value === "undefined" ? "" : value;
+    }
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please login first");
+      window.location.href = "login.html";
+    }
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.role !== "admin") {
+        alert("Access denied. Admins only.");
+        window.location.href = "login.html";
+      }
+    } catch (e) {
+      alert("Invalid token. Please login again.");
+      localStorage.removeItem("token");
+      window.location.href = "login.html";
+    }
+
+    const headers = { "Authorization": `Bearer ${token}` };
+    const taskId = new URLSearchParams(window.location.search).get("id");
+
+    async function loadTask() {
+      const task = JSON.parse(raw);
+console.log("📦 Full task object received:", task);
+console.log("✅ title:", task.title);
+console.log("✅ description:", task.description);
+console.log("✅ status:", task.status);
+
+
+      try {
+        const res = await fetch(`http://127.0.0.1:8000/auth/admin/tasks/${taskId}`, {
+          method: "GET",
+          headers
+        });
+
+        const raw = await res.text();
+        if (!res.ok) {
+          alert("Failed to load task: " + res.status);
+          return;
+        }
+
+        const task = JSON.parse(raw);
+        document.getElementById("title").value = task.title || "";
+        document.getElementById("description").value = task.description || "";
+        document.getElementById("status").value = task.status || "pending";
+
+        const mediaRes = await fetch(`http://127.0.0.1:8000/auth/tasks/${taskId}/media`, { headers });
+        const mediaList = await mediaRes.json();
+
+        const container = document.getElementById("media-list");
+        container.innerHTML = "";
+        if (Array.isArray(mediaList)) {
+          mediaList.forEach(media => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+              <span style="color:blue;cursor:pointer" onclick="previewMedia('http://127.0.0.1:8000${media.file_url}')">📎 ${media.filename}</span>
+              <button onclick="deleteMedia('${media.file_url}')">❌ Delete</button>
+            `;
+            container.appendChild(li);
+          });
+        }
+      } catch (err) {
+        console.error("❌ Error loading task:", err);
+        alert("Unexpected error occurred.");
+      }
+    }
+
+    document.getElementById("edit-form").addEventListener("submit", async e => {
+      e.preventDefault();
+
+      const data = {
+        title: sanitize(document.getElementById("title").value),
+        description: sanitize(document.getElementById("description").value),
+        status: document.getElementById("status").value || "pending",
+      };
+
+      console.log("📤 Submitting update:", data);
+
+      const res = await fetch(`http://127.0.0.1:8000/auth/admin/tasks/${taskId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...headers
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert("Task updated!");
+        loadTask();
+      } else {
+        console.error("Update failed:", result);
+        alert("Failed to update task.");
+      }
+    });
+
+    async function uploadFile() {
+      const file = document.getElementById("file-input").files[0];
+      if (!file) return alert("Select a file first.");
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch(`http://127.0.0.1:8000/auth/tasks/${taskId}/upload`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` },
+        body: formData
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert("File uploaded!");
+        loadTask();
+      } else {
+        alert("Upload failed: " + (result.detail || "Unknown error"));
+      }
+    }
+
+    async function deleteMedia(fileUrl) {
+      if (!confirm("Delete this file?")) return;
+
+      const res = await fetch(`http://127.0.0.1:8000/auth/media/${taskId}/media`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ file_url: fileUrl })
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert("File deleted.");
+        loadTask();
+      } else {
+        alert("Delete failed: " + (result.detail || "Unknown error"));
+      }
+    }
+
+    function previewMedia(url) {
+      const ext = url.split('.').pop().toLowerCase();
+      const viewer = document.getElementById("media-display");
+      viewer.innerHTML = "";
+
+      if (["jpg", "jpeg", "png"].includes(ext)) {
+        viewer.innerHTML = `<img src="${url}" alt="Image">`;
+      } else if (ext === "pdf") {
+        viewer.innerHTML = `<iframe src="${url}" width="100%" height="500px"></iframe>`;
+      } else {
+        viewer.innerHTML = `<p>Cannot preview this file type. <a href="${url}" target="_blank">Open</a></p>`;
+      }
+
+      document.getElementById("media-modal").style.display = "block";
+    }
+
+    function closeModal() {
+      document.getElementById("media-modal").style.display = "none";
+      document.getElementById("media-display").innerHTML = "";
+    }
+
+    loadTask();
+  </script>
+</body>
+</html>
+
+
+
