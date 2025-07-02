@@ -9,6 +9,8 @@ from src.shared.models.MediaTable import Media
 from fastapi.responses import JSONResponse
 
 MEDIA_DIR = "media"
+
+
 def get_media_for_task(db: Session, task_id: int):
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
@@ -16,13 +18,10 @@ def get_media_for_task(db: Session, task_id: int):
 
     media_files = db.query(Media).filter(Media.task_id == task_id).all()
     return [
-    {
-        "id": media.id,
-        "filename": media.filename,
-        "file_url": media.file_url
-    }
-    for media in media_files
-]
+        {"id": media.id, "filename": media.filename, "file_url": media.file_url}
+        for media in media_files
+    ]
+
 
 def _save_file_and_record(db: Session, task: Task, file: UploadFile):
     allowed_extensions = [".jpg", ".jpeg", ".png", ".pdf"]
@@ -38,17 +37,17 @@ def _save_file_and_record(db: Session, task: Task, file: UploadFile):
         f.write(file.file.read())
 
     media_file = Media(
-        task_id=task.id,
-        filename=file.filename,
-        file_url=f"/media/{unique_filename}"
+        task_id=task.id, filename=file.filename, file_url=f"/media/{unique_filename}"
     )
     db.add(media_file)
     db.commit()
     db.refresh(media_file)
     return media_file
 
+
 def get_all_tasks(db: Session):
     return db.query(Task).all()
+
 
 def get_task_by_id_admin(db: Session, task_id: int):
     task = db.query(Task).filter(Task.id == task_id).first()
@@ -62,15 +61,11 @@ def get_task_by_id_admin(db: Session, task_id: int):
         "title": task.title,
         "description": task.description,
         "status": task.status,
-        "created_at": str(task.created_at),  
+        "created_at": str(task.created_at),
         "media": [
-            {
-                "id": media.id,
-                "filename": media.filename,
-                "file_url": media.file_url
-            }
+            {"id": media.id, "filename": media.filename, "file_url": media.file_url}
             for media in media_files
-        ]
+        ],
     }
 
 
@@ -86,6 +81,7 @@ def update_task_admin(db: Session, task_id: int, data: UpdateTaskRequest):
     db.commit()
     db.refresh(task)
     return task
+
 
 def delete_task_admin(db: Session, task_id: int):
     task = get_task_by_id_admin(db, task_id)

@@ -4,16 +4,22 @@ from passlib.hash import bcrypt
 from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
 from src.shared.models.tables import User
-from src.shared.schemas.auth import ForgotPasswordRequest, ResetPasswordRequest, ResetTokenResponse
+from src.shared.schemas.auth import (
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
+    ResetTokenResponse,
+)
 
-SECRET_KEY = "myverysecurekey123"  
+SECRET_KEY = "myverysecurekey123"
 ALGORITHM = "HS256"
 RESET_TOKEN_EXPIRE_MINUTES = 30
+
 
 def generate_reset_token(email: str) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=RESET_TOKEN_EXPIRE_MINUTES)
     to_encode = {"sub": email, "exp": expire}
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
 
 def forgot_password(db: Session, request: ForgotPasswordRequest) -> ResetTokenResponse:
     user = db.query(User).filter(User.email == request.email).first()
@@ -21,6 +27,7 @@ def forgot_password(db: Session, request: ForgotPasswordRequest) -> ResetTokenRe
         raise HTTPException(status_code=404, detail="User not found")
     token = generate_reset_token(user.email)
     return ResetTokenResponse(reset_token=token)
+
 
 def reset_password(db: Session, request: ResetPasswordRequest):
     try:

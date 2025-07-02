@@ -7,7 +7,9 @@ from fastapi import HTTPException, UploadFile
 from src.shared.models.MediaTable import Media
 from fastapi import HTTPException
 import os
+
 MEDIA_DIR = "media"
+
 
 def _save_file_and_record(db: Session, task: Task, file: UploadFile):
     allowed_extensions = [".jpg", ".jpeg", ".png", ".pdf"]
@@ -23,9 +25,7 @@ def _save_file_and_record(db: Session, task: Task, file: UploadFile):
         f.write(file.file.read())
 
     media_file = Media(
-        task_id=task.id,
-        filename=file.filename,
-        file_url=f"/media/{unique_filename}"
+        task_id=task.id, filename=file.filename, file_url=f"/media/{unique_filename}"
     )
     db.add(media_file)
     db.commit()
@@ -35,27 +35,34 @@ def _save_file_and_record(db: Session, task: Task, file: UploadFile):
 
 def create_task_for_user(db: Session, user: User, request: CreateTaskRequest):
     if user.role != UserRole.user:
-        raise HTTPException(status_code=403, detail="Only regular users can create tasks.")
-    existing = db.query(Task).filter(
-        Task.user_id == user.id,
-        Task.title == request.title
-    ).first()
+        raise HTTPException(
+            status_code=403, detail="Only regular users can create tasks."
+        )
+    existing = (
+        db.query(Task)
+        .filter(Task.user_id == user.id, Task.title == request.title)
+        .first()
+    )
     if existing:
-        raise HTTPException(status_code=400, detail="Task with this title already exists")
+        raise HTTPException(
+            status_code=400, detail="Task with this title already exists"
+        )
 
     new_task = Task(
         title=request.title,
         description=request.description,
         status=request.status,
-        user_id=user.id
+        user_id=user.id,
     )
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
     return TaskResponse.from_orm(new_task)
 
+
 def get_user_tasks(db: Session, user: User):
     return db.query(Task).filter(Task.user_id == user.id).all()
+
 
 def get_task_by_id(db: Session, current_user: User, task_id: int):
     task = db.query(Task).filter(Task.id == task_id).first()
@@ -64,9 +71,12 @@ def get_task_by_id(db: Session, current_user: User, task_id: int):
         raise HTTPException(status_code=404, detail="Task not found")
 
     if task.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to access this task")
+        raise HTTPException(
+            status_code=403, detail="Not authorized to access this task"
+        )
 
     return task
+
 
 def update_task_logic(db: Session, user: User, task_id: int, data: UpdateTaskRequest):
     task = get_task_by_id(db, user, task_id)
@@ -77,12 +87,15 @@ def update_task_logic(db: Session, user: User, task_id: int, data: UpdateTaskReq
     db.refresh(task)
     return task
 
+
 def delete_task_logic(db: Session, user: User, task_id: int):
     task = get_task_by_id(db, user, task_id)
     db.delete(task)
     db.commit()
 
+
 MEDIA_DIR = "media"
+
 
 def upload_file_user(db: Session, user, task_id: int, file: UploadFile):
     task = db.query(Task).filter(Task.id == task_id, Task.user_id == user.id).first()
@@ -91,18 +104,21 @@ def upload_file_user(db: Session, user, task_id: int, file: UploadFile):
 
     return _save_file_and_record(db, task, file)
 
+
 def get_media_for_task(db: Session, current_user: User, task_id: int):
-    task = db.query(Task).filter(Task.id == task_id, Task.user_id == current_user.id).first()
+    task = (
+        db.query(Task)
+        .filter(Task.id == task_id, Task.user_id == current_user.id)
+        .first()
+    )
     if not task:
-        raise HTTPException(status_code=404, detail="Task not found or not owned by user")
+        raise HTTPException(
+            status_code=404, detail="Task not found or not owned by user"
+        )
 
     media_files = db.query(Media).filter(Media.task_id == task_id).all()
 
     return [
-    {
-        "id": media.id,
-        "filename": media.filename,
-        "file_url": media.file_url
-    }
-    for media in media_files
-]
+        {"id": media.id, "filename": media.filename, "file_url": media.file_url}
+        for media in media_files
+    ]

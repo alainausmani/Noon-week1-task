@@ -20,7 +20,7 @@ def create_access_token(data: dict):
     now = now = datetime.utcnow()
     expire = now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode = data.copy()
-    to_encode.update({"exp": expire , "iat": now})
+    to_encode.update({"exp": expire, "iat": now})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
@@ -29,17 +29,17 @@ def create_token_for_user(user):
     return create_access_token(data={"sub": user.email, "role": user.role.value})
 
 
-
 def login_user(db: Session, credentials: UserLoginRequest) -> LoginResponse:
     try:
         selected_role = UserRole(credentials.role)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid role selected.")
 
-    user = db.query(User).filter(
-        User.email == credentials.email,
-        User.role == selected_role
-    ).first()
+    user = (
+        db.query(User)
+        .filter(User.email == credentials.email, User.role == selected_role)
+        .first()
+    )
 
     if not user or not bcrypt.verify(credentials.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
@@ -49,5 +49,5 @@ def login_user(db: Session, credentials: UserLoginRequest) -> LoginResponse:
     return LoginResponse(
         access_token=token,
         token_type="bearer",
-        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES *60
+        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )

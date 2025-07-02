@@ -12,18 +12,23 @@ from src.shared.models.tables import User, UserRole
 
 
 from fastapi import Body
+
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+
+
 def get_db():
     db = SessionLocal()
     try:
         yield db
-    finally:  
+    finally:
         db.close()
-        
+
+
 @router.get("/profile", response_model=UserProfileResponse)
 def read_profile(profile=Depends(get_profile)):
     return profile
+
 
 @router.put("/profile", response_model=UserProfileResponse)
 def modify_profile(update_data: UserUpdateRequest, updated=Depends(update_profile)):

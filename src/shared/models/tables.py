@@ -4,15 +4,16 @@ import enum
 from sqlalchemy.orm import relationship
 from src.shared.models.TaskTable import Task
 
+
 class UserRole(enum.Enum):
     user = "user"
     admin = "admin"
+
+
 class User(Base):
     __tablename__ = "users"
 
-    __table_args__ = (
-        UniqueConstraint("email", "role", name="uix_email_role"),
-    )
+    __table_args__ = (UniqueConstraint("email", "role", name="uix_email_role"),)
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), nullable=False)

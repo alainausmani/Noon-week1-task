@@ -4,10 +4,12 @@ from src.shared.db.session import Base
 import enum
 from src.shared.models.MediaTable import Media
 
+
 class TaskStatus(enum.Enum):
     pending = "pending"
     in_progress = "in_progress"
     done = "done"
+
 
 class Task(Base):
     __tablename__ = "tasks"
