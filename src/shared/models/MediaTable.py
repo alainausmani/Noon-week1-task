@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
-from src.shared.db.session import Base
+from shared.db.session import Base
 
 
 class Media(Base):

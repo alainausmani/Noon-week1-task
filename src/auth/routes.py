@@ -3,20 +3,20 @@ import traceback
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from src.shared.db.session import SessionLocal
-from src.auth.domain import user as user_service
-from src.shared.schemas.auth import UserLoginRequest, LoginResponse
-from src.auth.domain.auth import login_user
-from src.auth.domain.password import forgot_password, reset_password
-from src.auth.token import get_current_user
-from src.shared.models.TaskTable import Task, TaskStatus
-from src.shared.models.tables import User, UserRole
-from src.shared.schemas.auth import (
+from shared.db.session import SessionLocal
+from domain import user as user_service
+from shared.schemas.auth import UserLoginRequest, LoginResponse
+from auth.domain.auth import login_user
+from auth.domain.password import forgot_password, reset_password
+from jwttoken import get_current_user
+from shared.models.TaskTable import Task, TaskStatus
+from shared.models.tables import User, UserRole
+from shared.schemas.auth import (
     ResetPasswordRequest,
     ForgotPasswordRequest,
     ResetTokenResponse,
 )
-from src.shared.schemas.user import UserResponse, UserRegistrationRequest
+from shared.schemas.user import UserResponse, UserRegistrationRequest
 
 
 from fastapi import Body

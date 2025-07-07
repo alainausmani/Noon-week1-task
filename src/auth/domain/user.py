@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from src.shared.models.tables import User
-from src.shared.schemas.user import UserRegistrationRequest, UserResponse
+from shared.models.tables import User
+from shared.schemas.user import UserRegistrationRequest, UserResponse
 from passlib.hash import bcrypt
 from datetime import datetime
 from fastapi import HTTPException, status

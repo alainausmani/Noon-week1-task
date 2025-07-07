@@ -2,13 +2,13 @@ from typing import List
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from src.shared.schemas.user import UserProfileResponse, UserUpdateRequest
+from shared.schemas.user import UserProfileResponse, UserUpdateRequest
 import traceback
-from src.user_profile.domain.user import get_profile, update_profile
-from src.shared.db.session import SessionLocal
-from src.auth.domain import user as user_service
-from src.auth.token import get_current_user
-from src.shared.models.tables import User, UserRole
+from domain.user import get_profile, update_profile
+from shared.db.session import SessionLocal
+from auth.domain import user as user_service
+from auth.jwttoken import get_current_user
+from shared.models.tables import User, UserRole
 
 
 from fastapi import Body

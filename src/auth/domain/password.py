@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
 from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
-from src.shared.models.tables import User
-from src.shared.schemas.auth import (
+from shared.models.tables import User
+from shared.schemas.auth import (
     ForgotPasswordRequest,
     ResetPasswordRequest,
     ResetTokenResponse,

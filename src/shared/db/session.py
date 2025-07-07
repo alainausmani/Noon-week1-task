@@ -6,7 +6,7 @@ import os
 
 load_dotenv()
 
-URL_DATABASE = os.getenv("DATABASE_URL", "mysql+pymysql://root:@localhost:3306/task1db")
+URL_DATABASE = os.getenv("DATABASE_URL", "mysql+pymysql://root:@host.docker.internal:3306/task1db")
 
 engine = create_engine(URL_DATABASE)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

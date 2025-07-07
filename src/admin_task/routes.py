@@ -2,18 +2,18 @@ from typing import List
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from src.shared.db.session import SessionLocal
-from src.auth.domain import user as user_service
-from src.shared.schemas.task import (
+from shared.db.session import SessionLocal
+from auth.domain import user as user_service
+from shared.schemas.task import (
     TaskFileResponse,
     UpdateTaskRequest,
     CreateTaskRequest,
     TaskResponse,
 )
-from src.admin_task.domain.admin import get_media_for_task
+from admin_task.domain.admin import get_media_for_task
 import traceback
-from src.auth.token import get_current_user
-from src.task.domain.user import (
+from auth.jwttoken import get_current_user
+from task.domain.user import (
     get_media_for_task,
     create_task_for_user,
     get_user_tasks,
@@ -21,10 +21,10 @@ from src.task.domain.user import (
     update_task_logic,
     delete_task_logic,
 )
-from src.shared.models.TaskTable import Task, TaskStatus
-from src.shared.models.tables import User, UserRole
-from src.admin_task.domain import admin
-from src.task.domain import user
+from shared.models.TaskTable import Task, TaskStatus
+from shared.models.tables import User, UserRole
+from admin_task.domain import admin
+from task.domain import user
 from fastapi import Body
 
 router = APIRouter()

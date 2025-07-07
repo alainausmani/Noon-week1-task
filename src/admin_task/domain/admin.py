@@ -1,11 +1,11 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, UploadFile
-from src.shared.models.TaskTable import Task
-from src.shared.schemas.task import CreateTaskRequest, UpdateTaskRequest
-from src.shared.models.tables import User, UserRole
+from shared.models.TaskTable import Task
+from shared.schemas.task import CreateTaskRequest, UpdateTaskRequest
+from shared.models.tables import User, UserRole
 import os
 from uuid import uuid4
-from src.shared.models.MediaTable import Media
+from shared.models.MediaTable import Media
 from fastapi.responses import JSONResponse
 
 MEDIA_DIR = "media"

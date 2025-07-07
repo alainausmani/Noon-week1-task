@@ -1,8 +1,8 @@
 from sqlalchemy import Column, Integer, String, DateTime, Enum, UniqueConstraint, func
-from src.shared.db.session import Base
+from shared.db.session import Base
 import enum
 from sqlalchemy.orm import relationship
-from src.shared.models.TaskTable import Task
+from shared.models.TaskTable import Task
 
 
 class UserRole(enum.Enum):

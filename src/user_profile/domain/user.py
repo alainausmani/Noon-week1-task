@@ -1,8 +1,8 @@
 from fastapi import Depends
 from sqlalchemy.orm import Session
-from src.shared.models.tables import User
-from src.shared.schemas.user import UserProfileResponse, UserUpdateRequest
-from src.auth.token import get_current_user, get_db
+from shared.models.tables import User
+from shared.schemas.user import UserProfileResponse, UserUpdateRequest
+from auth.jwttoken import get_current_user, get_db
 
 
 def get_profile(current_user: User = Depends(get_current_user)) -> UserProfileResponse:

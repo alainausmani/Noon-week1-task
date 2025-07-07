@@ -5,9 +5,9 @@ from dotenv import load_dotenv
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
-from src.shared.models.tables import User, UserRole
-from src.shared.schemas.auth import UserLoginRequest, LoginResponse
-
+from shared.models.tables import User, UserRole
+from shared.schemas.auth import UserLoginRequest, LoginResponse
+   
 
 load_dotenv()
 

@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.admin_task.routes import router
+from routes import router
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 

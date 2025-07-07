@@ -1,8 +1,8 @@
 from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
-from src.shared.db.session import Base
+from shared.db.session import Base
 import enum
-from src.shared.models.MediaTable import Media
+from shared.models.MediaTable import Media
 
 
 class TaskStatus(enum.Enum):

@@ -2,8 +2,8 @@ from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-from src.shared.models.tables import User, UserRole
-from src.shared.db.session import SessionLocal
+from shared.models.tables import User, UserRole
+from shared.db.session import SessionLocal
 import os
 from dotenv import load_dotenv
 
